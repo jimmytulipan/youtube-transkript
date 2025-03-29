@@ -8,7 +8,7 @@ try:
     from config import YOUTUBE_TRANSCRIPT_API_TOKEN # Importujeme len token
 except ImportError:
     YOUTUBE_TRANSCRIPT_API_TOKEN = None # Fallback pre nasadenie
-from youtube_transcript_bot import extract_video_id, get_transcript # Importujeme funkcie z bot skriptu
+from transcript_utils import extract_video_id, get_transcript, get_transcript_sync # Importujeme funkcie z nového modulu
 from translator import translator # Pridaný import prekladača
 import time  # Pridaný import pre timestamp
 import datetime  # Pre formátovanie dátumu
@@ -87,20 +87,7 @@ def process_url():
             transcript_data = asyncio.run(get_transcript(video_id))
         else:
             # Asyncio nie je dostupné, musíme použiť synchrónnu alternatívu
-            # Toto je synchrónna implementácia get_transcript
-            try:
-                url = "https://www.youtube-transcript.io/api/transcripts"
-                headers = {
-                    "Authorization": f"Basic {YOUTUBE_TRANSCRIPT_API_TOKEN}",
-                    "Content-Type": "application/json"
-                }
-                payload = {"ids": [video_id]}
-                response = requests.post(url, headers=headers, json=payload)
-                response.raise_for_status()
-                transcript_data = response.json()
-            except Exception as e:
-                logger.error(f"Chyba pri získavaní transkriptu: {e}")
-                transcript_data = None
+            transcript_data = get_transcript_sync(video_id)
 
         if not transcript_data:
             error_message = "Nepodarilo sa získať transkript. Video možno nemá titulky alebo nastala chyba API."
