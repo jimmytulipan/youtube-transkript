@@ -9,7 +9,6 @@ balíček pre preklad - napr. deep-translator alebo openai.
 
 import logging
 import configparser
-import os
 from typing import List, Dict, Any
 
 try:
@@ -45,17 +44,25 @@ class TranscriptTranslator:
         # Inicializácia OpenAI prekladača
         if OPENAI_AVAILABLE:
             try:
-                # Najprv skúsime získať API kľúč z premennej prostredia
-                api_key = os.environ.get('OPENAI_API_KEY')
+                # Načítanie OpenAI API kľúča z config.ini alebo environment premennej
+                api_key = None
                 
-                # Ak nie je v premennej prostredia, skúsime ho načítať z config.ini
+                # 1. Skúsime načítať z config.ini
+                try:
+                    config = configparser.ConfigParser()
+                    config.read('config.ini')
+                    api_key = config.get('api', 'openai_api_key', fallback=None)
+                    if api_key:
+                        logging.info("OpenAI API kľúč načítaný z config.ini")
+                except Exception as config_err:
+                    logging.warning(f"Nepodarilo sa načítať OpenAI API kľúč z config.ini: {config_err}")
+                
+                # 2. Ak nemáme kľúč z config.ini, skúsime environment premennú
                 if not api_key:
-                    try:
-                        config = configparser.ConfigParser()
-                        config.read('config.ini')
-                        api_key = config.get('api', 'openai_api_key', fallback=None)
-                    except Exception as e:
-                        logging.warning(f"Nepodarilo sa načítať OpenAI API kľúč z config.ini: {e}")
+                    import os
+                    api_key = os.environ.get('OPENAI_API_KEY')
+                    if api_key:
+                        logging.info("OpenAI API kľúč načítaný z environment premennej")
                 
                 if api_key:
                     openai.api_key = api_key
@@ -63,7 +70,7 @@ class TranscriptTranslator:
                     self.openai_available = True
                     logging.info("OpenAI prekladač úspešne inicializovaný")
                 else:
-                    logging.warning("OpenAI API kľúč nie je nastavený v prostredí ani v config.ini")
+                    logging.warning("OpenAI API kľúč nie je nastavený ani v config.ini ani v environment premennej")
             except Exception as e:
                 logging.error(f"Chyba pri inicializácii OpenAI klienta: {e}")
     
