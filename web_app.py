@@ -15,6 +15,12 @@ import datetime  # Pre formátovanie dátumu
 import requests  # Pre HTTP požiadavky na Telegram API
 import os  # Pre prácu so súbormi
 
+# Použijeme condicionálny import pre asyncio
+try:
+    import asyncio
+except ImportError:
+    asyncio = None
+
 # Nastavenie logovania (podobné ako v botovi)
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -75,10 +81,26 @@ def process_url():
     error_message = None
     
     try:
-        # Získanie transkriptu - voláme asynchrónnu funkciu synchrónne
-        # Poznámka: Pre produkčné nasadenie by bolo lepšie použiť ASGI server (napr. Uvicorn, Hypercorn)
-        # a async Flask, ale pre jednoduchosť použijeme asyncio.run()
-        transcript_data = asyncio.run(get_transcript(video_id))
+        # Získanie transkriptu - upravený spôsob volánia pre asynchrónnu funkciu
+        if asyncio:
+            # Asyncio je dostupné, použijeme asyncio.run()
+            transcript_data = asyncio.run(get_transcript(video_id))
+        else:
+            # Asyncio nie je dostupné, musíme použiť synchrónnu alternatívu
+            # Toto je synchrónna implementácia get_transcript
+            try:
+                url = "https://www.youtube-transcript.io/api/transcripts"
+                headers = {
+                    "Authorization": f"Basic {YOUTUBE_TRANSCRIPT_API_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+                payload = {"ids": [video_id]}
+                response = requests.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                transcript_data = response.json()
+            except Exception as e:
+                logger.error(f"Chyba pri získavaní transkriptu: {e}")
+                transcript_data = None
 
         if not transcript_data:
             error_message = "Nepodarilo sa získať transkript. Video možno nemá titulky alebo nastala chyba API."
@@ -292,49 +314,55 @@ def detailed_summarize():
 # Endpoint pre text-to-speech
 @app.route('/text_to_speech', methods=['POST'])
 def text_to_speech():
-    """Endpoint pre prevod textu na reč."""
+    """Prevod textu na reč pomocou gTTS (Google Text-to-Speech)."""
     try:
-        data = request.json
+        data = request.get_json()
         if not data or 'text' not in data:
-            return jsonify({"error": "Chýba text na prevod na reč."}), 400
-            
-        text = data['text']
-        if not text or len(text.strip()) < 2:
-            return jsonify({"error": "Text je príliš krátky na prevod na reč."}), 400
+            return jsonify({"error": "Chýba text na prevod"}), 400
+
+        text = data.get('text', '')
+        voice = data.get('voice', 'sk')  # Predvolene slovenčina
+        style = data.get('style', 'standard')  # Predvolený štýl 
+
+        # Základné overenie hlasu a štýlu
+        valid_voices = ["sk", "cs", "en"]
+        valid_styles = ["standard", "news", "calm", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "unfriendly", "whispering"]
         
-        # Voliteľné parametre
-        voice = data.get('voice', 'alloy')
-        style = data.get('style', 'slovak')  # Predvolene použijeme slovenský štýl
+        if voice not in valid_voices:
+            return jsonify({"error": f"Neplatný hlas. Povolené hodnoty: {', '.join(valid_voices)}"}), 400
         
-        # Dostupné hlasy a štýly
-        available_voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
-        available_styles = ["default", "slovak", "clear", "friendly", "formal"]
+        if style not in valid_styles:
+            return jsonify({"error": f"Neplatný štýl. Povolené hodnoty: {', '.join(valid_styles)}"}), 400
+
+        # Použitie gTTS na prevod textu na reč
+        from gtts import gTTS
+        import tempfile
         
-        # Validácia parametrov
-        if voice not in available_voices:
-            voice = "alloy"  # Predvolený hlas
+        # Vytvoríme dočasný súbor
+        temp_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+        temp_file.close()
         
-        if style not in available_styles:
-            style = "slovak"  # Predvolený štýl
+        # Prevedieme text na reč
+        tts = gTTS(text=text, lang=voice, slow=False)
+        tts.save(temp_file.name)
         
-        # Zavoláme funkciu na prevod textu na reč z prekladača
-        audio_data = translator.text_to_speech(text, voice, style)
+        # Príprava odpovede
+        with open(temp_file.name, 'rb') as f:
+            audio_data = f.read()
         
-        if not audio_data:
-            return jsonify({"error": "Nepodarilo sa vytvoriť hlasovú nahrávku."}), 500
-            
-        logger.info(f"Vykonaný prevod textu na reč (dĺžka textu: {len(text)} znakov, hlas: {voice}, štýl: {style})")
+        # Odstránime dočasný súbor
+        os.unlink(temp_file.name)
         
-        # Vytvoríme odpoveď s audio súborom
+        # Vrátime audio ako súbor na stiahnutie
         response = make_response(audio_data)
         response.headers.set('Content-Type', 'audio/mpeg')
-        response.headers.set('Content-Disposition', 'attachment', filename='speech.mp3')
+        response.headers.set('Content-Disposition', 'attachment', filename='podcast.mp3')
         
         return response
-        
+    
     except Exception as e:
         logger.error(f"Chyba pri prevode textu na reč: {e}", exc_info=True)
-        return jsonify({"error": f"Nastala chyba pri prevode textu na reč: {str(e)}"}), 500
+        return jsonify({"error": str(e)}), 500
 
 # Nový endpoint pre odoslanie audio súboru do Telegram bota
 @app.route('/send_podcast_to_telegram', methods=['POST'])
@@ -557,3 +585,16 @@ def get_telegram_chat_id():
 
 # WSGI handler pre Vercel - TOTO TREBA PRE VERCEL
 app = app 
+
+# Povolenie CORS
+@app.after_request
+def add_cors_headers(response):
+    """Pridá CORS hlavičky ku každej odpovedi."""
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+# Spustenie aplikácie
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
