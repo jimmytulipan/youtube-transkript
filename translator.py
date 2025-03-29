@@ -9,6 +9,7 @@ balíček pre preklad - napr. deep-translator alebo openai.
 
 import logging
 import configparser
+import os
 from typing import List, Dict, Any
 
 try:
@@ -44,10 +45,17 @@ class TranscriptTranslator:
         # Inicializácia OpenAI prekladača
         if OPENAI_AVAILABLE:
             try:
-                # Načítanie OpenAI API kľúča z config.ini
-                config = configparser.ConfigParser()
-                config.read('config.ini')
-                api_key = config.get('api', 'openai_api_key', fallback=None)
+                # Najprv skúsime získať API kľúč z premennej prostredia
+                api_key = os.environ.get('OPENAI_API_KEY')
+                
+                # Ak nie je v premennej prostredia, skúsime ho načítať z config.ini
+                if not api_key:
+                    try:
+                        config = configparser.ConfigParser()
+                        config.read('config.ini')
+                        api_key = config.get('api', 'openai_api_key', fallback=None)
+                    except Exception as e:
+                        logging.warning(f"Nepodarilo sa načítať OpenAI API kľúč z config.ini: {e}")
                 
                 if api_key:
                     openai.api_key = api_key
@@ -55,7 +63,7 @@ class TranscriptTranslator:
                     self.openai_available = True
                     logging.info("OpenAI prekladač úspešne inicializovaný")
                 else:
-                    logging.warning("OpenAI API kľúč nie je nastavený v config.ini")
+                    logging.warning("OpenAI API kľúč nie je nastavený v prostredí ani v config.ini")
             except Exception as e:
                 logging.error(f"Chyba pri inicializácii OpenAI klienta: {e}")
     
