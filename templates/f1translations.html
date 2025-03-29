@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Preklady Vysielačiek</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: #e10600 !important; /* Červená farba F1 */
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .f1-card {
+            margin-bottom: 15px;
+            border-left: 4px solid #e10600;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .english-text {
+            color: #495057;
+        }
+        .slovak-text {
+            font-weight: 500;
+            color: #212529;
+        }
+        .card-header {
+            background-color: rgba(225, 6, 0, 0.1);
+            font-weight: bold;
+        }
+        .refresh-btn {
+            background-color: #e10600;
+            border-color: #e10600;
+        }
+        .refresh-btn:hover {
+            background-color: #b30500;
+            border-color: #b30500;
+        }
+        .no-translations {
+            padding: 50px;
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Preklady F1 Vysielačiek</h1>
+                <p class="text-muted">Najnovšie zachytené a preložené texty z F1 vysielačiek</p>
+            </div>
+            <div class="col-md-4 text-end align-self-center">
+                <button id="refreshBtn" class="btn btn-danger refresh-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                    </svg>
+                    Obnoviť
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <!-- Zoznam prekladov -->
+                <div id="translationsList">
+                    {% if f1_translations %}
+                        {% for translation in f1_translations %}
+                            <div class="card f1-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Zachytený preklad</span>
+                                    <span class="timestamp">
+                                        {{ translation.timestamp|datetime }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text english-text">
+                                        <strong>EN:</strong> {{ translation.english }}
+                                    </p>
+                                    <p class="card-text slovak-text">
+                                        <strong>SK:</strong> {{ translation.slovak }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-translations">
+                            <h3>Žiadne preklady</h3>
+                            <p>Zatiaľ neboli zachytené žiadne preklady z F1 vysielačiek.</p>
+                            <p>Uistite sa, že F1 prekladač je spustený a správne nakonfigurovaný.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funkcia pre obnovenie stránky
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            location.reload();
+        });
+
+        // Automatické obnovenie stránky každých 30 sekúnd
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html> 

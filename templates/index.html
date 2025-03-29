@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcript Extractor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        body {
+            font-family: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: #343541;
+            color: #ececf1;
+            overflow: hidden;
+            background: linear-gradient(-45deg, #343541, #3b3c49, #343541, #3e3f51);
+            background-size: 400% 400%;
+            animation: gradientBG 45s ease infinite;
+            font-size: 18px;
+            letter-spacing: 0.3px;
+            font-weight: 300;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            transition: all 0.3s ease;
+        }
+
+        i.fa-fw {
+             width: 1.28571429em;
+             text-align: center;
+        }
+
+        h1, h2, h3, h4, h5, h6, .heading, .logo, .section-title {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: rgba(32, 33, 35, 0.85);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 8px;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+             margin-right: 8px;
+             font-size: 1em;
+             opacity: 0.9;
+             animation: pulse 2s infinite;
+        }
+
+        .new-chat-btn {
+           font-size: 1.1em;
+           padding: 5px;
+           opacity: 0.8;
+           transition: all 0.3s ease;
+        }
+        .new-chat-btn:hover {
+           opacity: 1;
+           transform: scale(1.1) rotate(5deg);
+        }
+
+        .sidebar-nav {
+            font-size: 0.875em;
+            font-weight: 400;
+        }
+
+        .sidebar-nav ul {
+            margin-bottom: 15px;
+        }
+
+        .sidebar-nav li a, .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav li a:hover, .sidebar-footer a:hover {
+            background-color: rgba(52, 53, 65, 0.7);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav i, .sidebar-footer i {
+            margin-right: 12px;
+            font-size: 1.1em;
+            opacity: 0.9;
+            width: 1.2em;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-nav li a:hover i, .sidebar-footer a:hover i {
+            transform: rotate(10deg);
+        }
+
+        .secondary-nav {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .secondary-nav .section-title {
+            font-size: 0.75em;
+            color: #8e8ea0;
+            padding: 15px 12px 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .secondary-nav::-webkit-scrollbar {
+          width: 6px;
+        }
+        .secondary-nav::-webkit-scrollbar-thumb {
+          background-color: #40414f;
+          border-radius: 3px;
+        }
+        .secondary-nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .sidebar-footer {
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto;
+            font-size: 0.875em;
+            font-weight: 400;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .center-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            width: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: #40414f transparent;
+        }
+
+        .center-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .center-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .center-area::-webkit-scrollbar-thumb {
+            background-color: #40414f;
+            border-radius: 4px;
+            border: 2px solid #343541;
+        }
+
+        .results-container {
+             width: 100%;
+             max-width: 768px;
+             margin-top: 20px;
+             padding: 0 10px;
+        }
+
+        .flash {
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 768px;
+            border: 1px solid transparent;
+            font-size: 0.9em;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            font-weight: 400;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .flash.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .flash.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .flash.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .transcript-area h2 {
+             font-size: 1.4em;
+             font-weight: 600;
+             margin-bottom: 18px;
+             color: #d1d5db;
+             text-align: center;
+             border-bottom: 1px solid rgba(124, 126, 140, 0.3);
+             padding-bottom: 10px;
+             margin-top: 5px;
+             font-family: 'Barlow Condensed', sans-serif;
+             letter-spacing: 0.5px;
+             animation: fadeIn 1s ease;
+        }
+
+        .transcript-area textarea {
+            width: 100%;
+            min-height: 700px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            background-color: rgba(64, 65, 79, 0.7);
+            border: 1px solid rgba(86, 88, 105, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+            color: #ececf1;
+            font-family: 'Barlow Condensed', monospace;
+            font-size: 1.15em;
+            resize: vertical;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            line-height: 1.4;
+            font-weight: 300;
+            letter-spacing: 0.4px;
+            transition: all 0.3s ease;
+            animation: fadeIn 1.2s ease;
+        }
+        
+        .transcript-area textarea:focus {
+            outline: none;
+            border-color: rgba(124, 126, 140, 0.8);
+            box-shadow: 0 0 20px rgba(124, 126, 140, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .transcript-line {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+            padding: 1px 0;
+            text-indent: 0;
+        }
+
+        .transcript-line.visible {
+            opacity: 1;
+            transform: translateY(0) !important;
+        }
+
+        /* Pridáme postupnosť zjavenie sa riadkov pre efekt kaskády */
+        .transcript-line:nth-child(odd) {
+            transform: translateX(-15px);
+        }
+
+        .transcript-line:nth-child(even) {
+            transform: translateX(15px);
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 768px;
+            margin: 0 auto;
+            padding: 0 20px 20px 20px;
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(52, 53, 65, 0) 0%, #343541 58.85%);
+            padding-top: 20px;
+            animation: slideIn 0.7s ease-out;
+            z-index: 10;
+        }
+
+        .input-area {
+            display: flex;
+            align-items: center;
+            background-color: rgba(64, 65, 79, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 10px 10px 10px 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .input-area:focus-within {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .input-area input[type="url"] {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ececf1;
+            font-size: 1.1em;
+            padding: 8px 5px;
+            height: auto;
+            line-height: normal;
+            margin-right: 8px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }
+
+        .input-area input[type="url"]::placeholder {
+            color: #8e8ea0;
+            font-weight: 300;
+            transition: opacity 0.3s ease;
+        }
+
+        .input-area input[type="url"]:focus::placeholder {
+            opacity: 0.5;
+        }
+
+        .input-area button[type="submit"] {
+            padding: 8px;
+            font-size: 1.1em;
+            color: #40414f;
+            background-color: #acacbe;
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+         .input-area button[type="submit"]:not(:disabled) {
+             background-color: #fff;
+             color: #000;
+             opacity: 1;
+             cursor: pointer;
+        }
+        .input-area button[type="submit"]:not(:disabled):hover {
+            background-color: #f0f0f0;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+         .input-area button[type="submit"]:disabled {
+             background-color: #565869;
+             color: #8e8ea0;
+             cursor: not-allowed;
+             opacity: 0.5;
+         }
+
+        .footer-text {
+            font-size: 0.75em;
+            color: #c7c7cf;
+            text-align: center;
+            padding-top: 15px;
+            opacity: 0.8;
+            font-weight: 300;
+            animation: fadeIn 1.5s ease;
+        }
+
+        input[type="url"]::-webkit-credentials-auto-fill-button,
+        input[type="url"]::-webkit-contacts-auto-fill-button {
+            visibility: hidden;
+            position: absolute;
+            right: 0;
+        }
+
+        .empty-history {
+            padding: 15px 12px;
+            color: #8e8ea0;
+            font-size: 0.9em;
+            font-style: italic;
+            font-weight: 300;
+            animation: fadeIn 1s ease;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #8e8ea0;
+            margin-top: 50px;
+            background-color: rgba(64, 65, 79, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeIn 1s ease, float 6s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        .welcome-message:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-message i {
+            font-size: 3em;
+            margin-bottom: 20px;
+            opacity: 0.8;
+            animation: pulse 3s infinite;
+        }
+
+        .welcome-message p {
+            font-size: 1.2em;
+            margin-bottom: 0;
+            line-height: 1.5;
+            font-family: 'Barlow Condensed', sans-serif;
+            letter-spacing: 0.4px;
+            font-weight: 300;
+        }
+
+        .transcript-area textarea::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .transcript-area textarea::-webkit-scrollbar-track {
+            background: rgba(32, 33, 35, 0.4);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .transcript-area textarea::-webkit-scrollbar-thumb {
+            background-color: rgba(124, 126, 140, 0.5);
+            border-radius: 4px;
+            border: 2px solid rgba(32, 33, 35, 0.4);
+        }
+
+        .sidebar-nav, .sidebar-footer, .logo, .footer-text, .flash {
+            font-family: 'Barlow Condensed', sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        #summarizeBtn {
+            background-color: rgba(64, 65, 79, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: #ececf1;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-family: 'Barlow Condensed', sans-serif;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease;
+        }
+
+        #summarizeBtn:hover {
+            background-color: rgba(80, 82, 100, 0.9);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #summarizeBtn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        #summarizeBtn i {
+            transition: transform 0.3s ease;
+        }
+
+        #summarizeBtn:hover i {
+            transform: rotate(10deg);
+        }
+
+        .action-button {
+            background-color: rgba(64, 65, 79, 0.8);
+            color: #ececf1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-button i {
+            margin-right: 8px;
+        }
+
+        .action-button:hover {
+            background-color: rgba(80, 82, 100, 0.9);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="logo animate__animated animate__fadeIn">
+                <i class="fa-solid fa-robot"></i>
+                YT Transcriber
+            </a>
+            <a href="/" class="new-chat-btn animate__animated animate__fadeIn" title="Nová požiadavka">
+                <i class="fa-regular fa-pen-to-square fa-fw"></i>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav secondary-nav">
+             <div class="section-title animate__animated animate__fadeIn animate__delay-1s">História požiadaviek</div>
+             {% if history and history|length > 0 %}
+             <ul class="animate__animated animate__fadeIn animate__delay-1s">
+                 {% for item in history %}
+                 <li>
+                     <a href="{{ url_for('replay_from_history', video_id=item.video_id) }}" title="{{ item.url }}">
+                         <i class="fa-regular fa-clock fa-fw"></i>
+                         <span>{{ item.title }}</span>
+                     </a>
+                 </li>
+                 {% endfor %}
+             </ul>
+             {% else %}
+             <div class="empty-history animate__animated animate__fadeIn animate__delay-1s">Zatiaľ žiadna história...</div>
+             {% endif %}
+        </nav>
+
+        <div class="sidebar-footer animate__animated animate__fadeIn animate__delay-2s">
+            <ul>
+                <li><a href="https://github.com/vas-projekt" target="_blank"><i class="fa-brands fa-github fa-fw"></i><span>GitHub</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="center-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }} animate__animated animate__fadeInDown">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="results-container">
+                {% if transcript is defined and transcript %}
+                    <div class="transcript-area animate__animated animate__fadeIn">
+                        <h2>Prepis videa:</h2>
+                        <textarea readonly>{{ transcript }}</textarea>
+                    </div>
+                {% elif transcript is defined and not transcript and not get_flashed_messages(category_filter=["error"]) %}
+                     <p style="text-align: center; color: #8e8ea0;" class="animate__animated animate__fadeIn">Prepis bol prázdny alebo sa nepodarilo extrahovať text.</p>
+                {% else %}
+                     <div class="welcome-message animate__animated animate__fadeInUp">
+                         <i class="fa-solid fa-film"></i>
+                         <p>Zadajte URL YouTube videa nižšie pre získanie prepisu v slovenčine.</p>
+                     </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="input-wrapper">
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <button id="summarizeBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s">
+                    <i class="fa-solid fa-book"></i> Sumarizovať
+                </button>
+                <button id="detailedSummarizeBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s" style="margin-left: 10px;">
+                    <i class="fa-solid fa-book-open"></i> Podrobná sumarizácia
+                </button>
+                <button id="textToSpeechBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s" style="margin-left: 10px;">
+                    <i class="fa-solid fa-volume-high"></i> Podcast z aktuálneho textu
+                </button>
+            </div>
+            <form action="/process" method="post" class="input-area animate__animated animate__fadeInUp animate__delay-1s">
+                <input type="url" id="youtube_url" name="youtube_url" value="{{ submitted_url or '' }}" placeholder="Zadajte YouTube URL..." required>
+                <button type="submit" title="Získať Prepis">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+            <p class="footer-text animate__animated animate__fadeIn animate__delay-2s">Jednoduchý extraktor YouTube prepisov.</p>
+        </div>
+    </main>
+
+    <script>
+        const urlInput = document.getElementById('youtube_url');
+        const submitButton = document.querySelector('.input-area button[type="submit"]');
+        const summarizeBtn = document.getElementById('summarizeBtn');
+
+        function toggleButtonState() {
+            if (urlInput.value.trim() !== '') {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        toggleButtonState();
+
+        urlInput.addEventListener('input', toggleButtonState);
+        
+        // Pridanie animácií pre elementy ktoré sa načítajú neskôr
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animácia pre elementy ktoré sa načítajú dynamicky
+            const animateElement = (element, animation = 'fadeIn') => {
+                if (element) {
+                    element.classList.add('animate__animated', `animate__${animation}`);
+                }
+            };
+            
+            // Pridanie efektu vlnenia (ripple) pre tlačidlá
+            const addRippleEffect = (button) => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    this.appendChild(ripple);
+                    
+                    const x = e.clientX - e.target.getBoundingClientRect().left;
+                    const y = e.clientY - e.target.getBoundingClientRect().top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            };
+            
+            // Pridanie ripple efektu pre všetky tlačidlá
+            document.querySelectorAll('button').forEach(button => {
+                addRippleEffect(button);
+            });
+
+            // Spracovanie a animácia textu transkriptu
+            const transcriptArea = document.querySelector('.transcript-area textarea');
+            if (transcriptArea && transcriptArea.value) {
+                setupTranscriptAnimation(transcriptArea);
+            }
+        });
+
+        // Funkcia na nastavenie animácie transkriptu
+        function setupTranscriptAnimation(textarea) {
+            // Vytvoríme div pre animovaný obsah
+            const container = document.createElement('div');
+            container.className = 'transcript-content';
+            container.style.cssText = `
+                width: 100%;
+                min-height: 700px;
+                box-sizing: border-box;
+                margin-top: 5px;
+                background-color: rgba(64, 65, 79, 0.7);
+                border: 1px solid rgba(86, 88, 105, 0.6);
+                border-radius: 12px;
+                padding: 16px;
+                color: #ececf1;
+                font-family: 'Barlow Condensed', monospace;
+                font-size: 1.15em;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                line-height: 1.4;
+                font-weight: 300;
+                letter-spacing: 0.4px;
+            `;
+            
+            // Rozdelíme text na riadky a vytvoríme span pre každý riadok
+            const lines = textarea.value.split('\n');
+            lines.forEach((line, index) => {
+                const lineElement = document.createElement('div');
+                lineElement.className = 'transcript-line';
+                lineElement.textContent = line;
+                lineElement.style.cssText = `
+                    margin-bottom: 0.5em;
+                    transition-delay: ${index * 0.03}s;
+                `;
+                container.appendChild(lineElement);
+            });
+            
+            // Nahradíme textarea naším vlastným divom
+            textarea.style.display = 'none';
+            textarea.parentNode.insertBefore(container, textarea.nextSibling);
+            
+            // Funkcia na kontrolu viditeľnosti riadkov
+            function checkVisibility() {
+                const lines = document.querySelectorAll('.transcript-line');
+                const containerRect = container.getBoundingClientRect();
+                
+                lines.forEach(line => {
+                    const rect = line.getBoundingClientRect();
+                    const isVisible = 
+                        rect.top >= containerRect.top - 50 &&
+                        rect.bottom <= containerRect.bottom + 50;
+                    
+                    if (isVisible) {
+                        line.classList.add('visible');
+                    }
+                });
+            }
+            
+            // Pridanie event listenera pre scroll
+            container.addEventListener('scroll', checkVisibility);
+            window.addEventListener('scroll', checkVisibility);
+            
+            // Spustíme kontrolu viditeľnosti aj po načítaní
+            setTimeout(checkVisibility, 100);
+        }
+        
+        // Funkcia na generovanie ripple efektu
+        function createRipple(event) {
+            const button = event.currentTarget;
+            
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+            circle.classList.add("ripple");
+            
+            const ripple = button.getElementsByClassName("ripple")[0];
+            
+            if (ripple) {
+                ripple.remove();
+            }
+            
+            button.appendChild(circle);
+        }
+        
+        // Pridanie ripple efektu ku všetkým tlačidlám
+        const buttons = document.querySelectorAll('.action-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', createRipple);
+        });
+        
+        // Funkcia pre sumarizáciu a podrobnú sumarizáciu
+        function processSummarization(type, button) {
+            const transcript = document.querySelector('.transcript-area textarea');
+            if (!transcript || !transcript.value) {
+                alert('Nie je k dispozícii žiadny text na sumarizáciu.');
+                return;
+            }
+            
+            // Informačná správa pre používateľa
+            const flashContainer = document.createElement('div');
+            flashContainer.className = 'flash warning animate__animated animate__fadeIn';
+            flashContainer.innerHTML = `Prebieha ${type === 'summarize' ? 'sumarizácia' : 'podrobná sumarizácia'} textu. Toto môže trvať dlhšie, prosím čakajte...`;
+            
+            const resultContainer = document.querySelector('.results-container');
+            if (resultContainer) {
+                resultContainer.prepend(flashContainer);
+            }
+            
+            // Nastavenie tlačidla
+            const originalHTML = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generujem...';
+            
+            // Volanie API
+            fetch(`/${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: transcript.value }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (flashContainer) {
+                    flashContainer.remove();
+                }
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Zobrazenie súhrnu
+                const summaryContainer = document.createElement('div');
+                summaryContainer.className = 'summary-container animate__animated animate__fadeIn';
+                summaryContainer.style.cssText = `
+                    background-color: rgba(64, 65, 79, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                `;
+                
+                const summaryTitle = document.createElement('h4');
+                summaryTitle.textContent = type === 'summarize' ? 'Súhrn textu' : 'Podrobný súhrn textu';
+                summaryTitle.style.cssText = `
+                    margin: 0 0 10px 0;
+                    font-size: 1.1em;
+                    color: #ececf1;
+                `;
+                
+                const summaryText = document.createElement('div');
+                summaryText.className = 'summary-text';
+                summaryText.innerHTML = data.summary.replace(/\n/g, '<br>');
+                summaryText.style.cssText = `
+                    white-space: pre-wrap;
+                    color: #d1d1d9;
+                    line-height: 1.5;
+                    font-size: 1em;
+                `;
+                
+                // Tlačidlo pre použitie sumarizácie
+                const useSummaryButton = document.createElement('button');
+                useSummaryButton.className = 'action-button';
+                useSummaryButton.innerHTML = '<i class="fa-solid fa-check"></i> Použiť túto sumarizáciu na podcast';
+                useSummaryButton.style.cssText = `
+                    margin-top: 15px;
+                    width: 100%;
+                `;
+                
+                useSummaryButton.addEventListener('click', function() {
+                    // Nahradenie textu v textovom poli sumarizáciou
+                    transcript.value = data.summary;
+                    
+                    // Informačná správa
+                    const infoFlash = document.createElement('div');
+                    infoFlash.className = 'flash success animate__animated animate__fadeIn';
+                    infoFlash.innerHTML = 'Sumarizácia bola nastavená ako text pre podcast.';
+                    
+                    if (resultContainer) {
+                        resultContainer.prepend(infoFlash);
+                        
+                        // Skrytie informačnej správy po 3 sekundách
+                        setTimeout(() => {
+                            infoFlash.remove();
+                        }, 3000);
+                    }
+                });
+                
+                summaryContainer.appendChild(summaryTitle);
+                summaryContainer.appendChild(summaryText);
+                summaryContainer.appendChild(useSummaryButton);
+                
+                if (resultContainer) {
+                    resultContainer.prepend(summaryContainer);
+                }
+            })
+            .catch(error => {
+                if (flashContainer) {
+                    flashContainer.remove();
+                }
+                console.error('Error:', error);
+                alert(`Chyba pri ${type === 'summarize' ? 'sumarizácii' : 'podrobnej sumarizácii'} textu: ` + error);
+            })
+            .finally(() => {
+                // Obnovenie tlačidla
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            });
+        }
+        
+        // Pridanie CSS pre ripple efekt
+        const style = document.createElement('style');
+        style.textContent = `
+            .ripple {
+                position: absolute;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                pointer-events: none;
+            }
+            
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            
+            button {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .transcript-content::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .transcript-content::-webkit-scrollbar-track {
+                background: rgba(32, 33, 35, 0.4);
+                border-radius: 0 12px 12px 0;
+            }
+
+            .transcript-content::-webkit-scrollbar-thumb {
+                background-color: rgba(124, 126, 140, 0.5);
+                border-radius: 4px;
+                border: 2px solid rgba(32, 33, 35, 0.4);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Sumarizácia - už existujúca funkcionalita
+        if (document.getElementById('summarizeBtn')) {
+            document.getElementById('summarizeBtn').addEventListener('click', function() {
+                processSummarization('summarize', this);
+            });
+        }
+        
+        // Podrobná sumarizácia - aktualizácia na rovnaký štýl
+        const detailedSummarizeBtn = document.getElementById('detailedSummarizeBtn');
+        if (detailedSummarizeBtn) {
+            detailedSummarizeBtn.addEventListener('click', function() {
+                processSummarization('detailed_summarize', this);
+            });
+        }
+        
+        // Podcast (pôvodne text-to-speech) - používame aktuálny text
+        const textToSpeechBtn = document.getElementById('textToSpeechBtn');
+        if (textToSpeechBtn) {
+            textToSpeechBtn.addEventListener('click', function() {
+                // DÔLEŽITÉ: Používame aktuálny text - buď originálny alebo sumarizáciu
+                // Podcast sa vytvára z textu, ktorý je práve zobrazený (aj zo sumarizácie)
+                const transcript = document.querySelector('.transcript-area textarea');
+                if (!transcript || !transcript.value) {
+                    alert('Nie je k dispozícii žiadny text na prevod na reč.');
+                    return;
+                }
+                
+                // Používame aktuálny text, ktorý je viditeľný v textovom poli
+                const currentText = transcript.value;
+                
+                // Vytvoríme modálne okno pre nastavenie hlasu a štýlu
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                `;
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.cssText = `
+                    background-color: rgba(64, 65, 79, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    padding: 20px;
+                    width: 90%;
+                    max-width: 400px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                `;
+                
+                const modalTitle = document.createElement('h4');
+                modalTitle.textContent = 'Nastavenia podcastu';
+                modalTitle.style.cssText = `
+                    margin: 0 0 15px 0;
+                    font-size: 1.2em;
+                    color: #ececf1;
+                    text-align: center;
+                `;
+                
+                const modalInfo = document.createElement('p');
+                modalInfo.innerHTML = 'Vyberte si hlas a štýl pre podcast z aktuálneho textu:';
+                modalInfo.style.cssText = `
+                    margin-bottom: 20px;
+                    color: #d1d1d9;
+                    font-size: 0.9em;
+                    text-align: center;
+                `;
+                
+                // Vytvoríme sekciu pre výber hlasu
+                const voiceContainer = document.createElement('div');
+                voiceContainer.style.cssText = `
+                    margin-bottom: 15px;
+                `;
+                
+                const voiceLabel = document.createElement('label');
+                voiceLabel.textContent = 'Hlas:';
+                voiceLabel.style.cssText = `
+                    display: block;
+                    margin-bottom: 5px;
+                    color: #ececf1;
+                    font-size: 0.95em;
+                `;
+                
+                const voiceSelect = document.createElement('select');
+                voiceSelect.style.cssText = `
+                    width: 100%;
+                    padding: 10px;
+                    background-color: rgba(86, 88, 105, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    color: #ececf1;
+                    font-size: 1em;
+                    outline: none;
+                    transition: all 0.3s ease;
+                `;
+                
+                // Pridáme možnosti hlasov
+                const voices = [
+                    { value: "alloy", name: "Alloy (neutrálny)" },
+                    { value: "echo", name: "Echo (mužský, hlboký)" },
+                    { value: "fable", name: "Fable (ženský, jemný)" },
+                    { value: "onyx", name: "Onyx (mužský, dôveryhodný)" },
+                    { value: "nova", name: "Nova (ženský, energický)" },
+                    { value: "shimmer", name: "Shimmer (ženský, čistý)" }
+                ];
+                
+                voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.value = voice.value;
+                    option.textContent = voice.name;
+                    if (voice.value === 'alloy') option.selected = true;
+                    voiceSelect.appendChild(option);
+                });
+                
+                // Vytvoríme sekciu pre výber štýlu
+                const styleContainer = document.createElement('div');
+                styleContainer.style.cssText = `
+                    margin-bottom: 20px;
+                `;
+                
+                const styleLabel = document.createElement('label');
+                styleLabel.textContent = 'Štýl reči:';
+                styleLabel.style.cssText = `
+                    display: block;
+                    margin-bottom: 5px;
+                    color: #ececf1;
+                    font-size: 0.95em;
+                `;
+                
+                const styleSelect = document.createElement('select');
+                styleSelect.style.cssText = `
+                    width: 100%;
+                    padding: 10px;
+                    background-color: rgba(86, 88, 105, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    color: #ececf1;
+                    font-size: 1em;
+                    outline: none;
+                    transition: all 0.3s ease;
+                `;
+                
+                // Pridáme možnosti štýlov
+                const styles = [
+                    { value: "slovak", name: "Slovenská výslovnosť (odporúčané)" },
+                    { value: "default", name: "Predvolený (neutrálny)" },
+                    { value: "clear", name: "Zreteľný (jasná artikulácia)" },
+                    { value: "friendly", name: "Priateľský (vrelý tón)" },
+                    { value: "formal", name: "Formálny (profesionálny)" }
+                ];
+                
+                styles.forEach(style => {
+                    const option = document.createElement('option');
+                    option.value = style.value;
+                    option.textContent = style.name;
+                    if (style.value === 'slovak') option.selected = true;
+                    styleSelect.appendChild(option);
+                });
+                
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                `;
+                
+                const cancelButton = document.createElement('button');
+                cancelButton.className = 'action-button';
+                cancelButton.textContent = 'Zrušiť';
+                cancelButton.style.cssText = `
+                    flex: 1;
+                    margin-right: 10px;
+                `;
+                
+                const createButton = document.createElement('button');
+                createButton.className = 'action-button';
+                createButton.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Vytvoriť podcast z aktuálneho textu';
+                createButton.style.cssText = `
+                    flex: 2;
+                `;
+                
+                // Pridanie event listenerov
+                cancelButton.addEventListener('click', function() {
+                    document.body.removeChild(modal);
+                });
+                
+                createButton.addEventListener('click', function() {
+                    const selectedVoice = voiceSelect.value;
+                    const selectedStyle = styleSelect.value;
+                    
+                    // Zmeňme tlačidlo na indikátor načítavania
+                    createButton.disabled = true;
+                    createButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generujem...';
+                    
+                    // Zavrieme modálne okno
+                    document.body.removeChild(modal);
+                    
+                    // Informačná správa pre používateľa
+                    const flashContainer = document.createElement('div');
+                    flashContainer.className = 'flash warning animate__animated animate__fadeIn';
+                    flashContainer.innerHTML = 'Prebieha generovanie podcastu. Toto môže trvať dlhšie, prosím čakajte...';
+                    
+                    const resultContainer = document.querySelector('.results-container');
+                    if (resultContainer) {
+                        resultContainer.prepend(flashContainer);
+                    }
+                    
+                    // Nastavenie tlačidla
+                    textToSpeechBtn.disabled = true;
+                    
+                    // Volanie API - používame aktuálny text (môže byť sumarizácia)
+                    fetch('/text_to_speech', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            text: currentText,
+                            voice: selectedVoice,
+                            style: selectedStyle
+                        }),
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Neznáma chyba');
+                            });
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        if (flashContainer) {
+                            flashContainer.remove();
+                        }
+                        
+                        // Vytvorenie URL pre zvukový súbor
+                        const audioUrl = URL.createObjectURL(blob);
+                        
+                        // Vytvorenie zvukového prehrávača
+                        const audioPlayer = document.createElement('div');
+                        audioPlayer.className = 'audio-player animate__animated animate__fadeIn';
+                        audioPlayer.style.cssText = `
+                            background-color: rgba(64, 65, 79, 0.8);
+                            border: 1px solid rgba(255, 255, 255, 0.15);
+                            border-radius: 10px;
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                        `;
+                        
+                        const audioTitle = document.createElement('h4');
+                        audioTitle.textContent = 'Podcast';
+                        audioTitle.style.cssText = `
+                            margin: 0 0 10px 0;
+                            font-size: 1.1em;
+                            color: #ececf1;
+                        `;
+                        
+                        // Pridanie informácie o použitom hlase a štýle
+                        const audioInfo = document.createElement('p');
+                        audioInfo.innerHTML = `Hlas: <strong>${selectedVoice}</strong>, Štýl: <strong>${selectedStyle}</strong>`;
+                        audioInfo.style.cssText = `
+                            margin: 0 0 10px 0;
+                            font-size: 0.9em;
+                            color: #d1d1d9;
+                        `;
+                        
+                        const audioElement = document.createElement('audio');
+                        audioElement.controls = true;
+                        audioElement.style.cssText = `
+                            width: 100%;
+                        `;
+                        audioElement.src = audioUrl;
+                        
+                        const buttonsContainer = document.createElement('div');
+                        buttonsContainer.style.cssText = `
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: 12px;
+                        `;
+                        
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = audioUrl;
+                        downloadLink.download = 'podcast.mp3';
+                        downloadLink.className = 'action-button';
+                        downloadLink.innerHTML = '<i class="fa-solid fa-download"></i> Stiahnuť MP3';
+                        downloadLink.style.cssText = `
+                            display: inline-flex;
+                            align-items: center;
+                            margin-right: 10px;
+                        `;
+                        
+                        const telegramButton = document.createElement('button');
+                        telegramButton.className = 'action-button';
+                        telegramButton.innerHTML = '<i class="fa-brands fa-telegram"></i> Poslať na Telegram';
+                        
+                        telegramButton.addEventListener('click', function() {
+                            // Vytvoríme modálne okno pre zadanie chat ID
+                            const modal = document.createElement('div');
+                            modal.style.cssText = `
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background-color: rgba(0, 0, 0, 0.7);
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                z-index: 1000;
+                            `;
+                            
+                            const modalContent = document.createElement('div');
+                            modalContent.style.cssText = `
+                                background-color: rgba(64, 65, 79, 0.9);
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                border-radius: 12px;
+                                padding: 20px;
+                                width: 90%;
+                                max-width: 400px;
+                                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                            `;
+                            
+                            const modalTitle = document.createElement('h4');
+                            modalTitle.textContent = 'Odoslať podcast na Telegram';
+                            modalTitle.style.cssText = `
+                                margin: 0 0 15px 0;
+                                font-size: 1.2em;
+                                color: #ececf1;
+                                text-align: center;
+                            `;
+                            
+                            const modalInfo = document.createElement('p');
+                            modalInfo.innerHTML = 'Zadajte Telegram Chat ID, kam chcete odoslať podcast.<br>Môžete použiť svoje User ID alebo ID skupiny.';
+                            modalInfo.style.cssText = `
+                                margin-bottom: 20px;
+                                color: #d1d1d9;
+                                font-size: 0.9em;
+                                text-align: center;
+                            `;
+                            
+                            const inputContainer = document.createElement('div');
+                            inputContainer.style.cssText = `
+                                margin-bottom: 20px;
+                            `;
+                            
+                            const chatIdInput = document.createElement('input');
+                            chatIdInput.type = 'text';
+                            chatIdInput.placeholder = 'Zadajte Chat ID...';
+                            chatIdInput.value = '1175143262'; // Predvyplníme Chat ID
+                            chatIdInput.style.cssText = `
+                                width: 100%;
+                                padding: 10px;
+                                background-color: rgba(86, 88, 105, 0.5);
+                                border: 1px solid rgba(255, 255, 255, 0.1);
+                                border-radius: 8px;
+                                color: #ececf1;
+                                font-size: 1em;
+                                outline: none;
+                                transition: all 0.3s ease;
+                                margin-bottom: 10px;
+                            `;
+                            
+                            const buttonContainer = document.createElement('div');
+                            buttonContainer.style.cssText = `
+                                display: flex;
+                                justify-content: space-between;
+                            `;
+                            
+                            const cancelButton = document.createElement('button');
+                            cancelButton.className = 'action-button';
+                            cancelButton.textContent = 'Zrušiť';
+                            cancelButton.style.cssText = `
+                                flex: 1;
+                                margin-right: 10px;
+                            `;
+                            
+                            const sendButton = document.createElement('button');
+                            sendButton.className = 'action-button';
+                            sendButton.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Odoslať';
+                            sendButton.style.cssText = `
+                                flex: 1;
+                            `;
+                            
+                            // Pridanie event listenerov
+                            cancelButton.addEventListener('click', function() {
+                                document.body.removeChild(modal);
+                            });
+                            
+                            sendButton.addEventListener('click', function() {
+                                const chatId = chatIdInput.value.trim();
+                                if (!chatId) {
+                                    alert('Prosím, zadajte Telegram Chat ID.');
+                                    return;
+                                }
+                                
+                                // Zmeňme tlačidlo na indikátor načítavania
+                                sendButton.disabled = true;
+                                sendButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Odosielam...';
+                                
+                                // Odoslanie požiadavky na server - používame aktuálny text
+                                fetch('/send_podcast_to_telegram', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ 
+                                        text: currentText,
+                                        voice: selectedVoice,
+                                        style: selectedStyle,
+                                        chat_id: chatId
+                                    }),
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Podcast bol úspešne odoslaný do Telegram bota!');
+                                        document.body.removeChild(modal);
+                                    } else {
+                                        throw new Error(data.error || 'Neznáma chyba pri odosielaní');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Chyba pri odosielaní podcastu: ' + error);
+                                    sendButton.disabled = false;
+                                    sendButton.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Odoslať';
+                                });
+                            });
+                            
+                            // Pridanie prvkov do stromu DOM
+                            inputContainer.appendChild(chatIdInput);
+                            
+                            buttonContainer.appendChild(cancelButton);
+                            buttonContainer.appendChild(sendButton);
+                            
+                            modalContent.appendChild(modalTitle);
+                            modalContent.appendChild(modalInfo);
+                            modalContent.appendChild(inputContainer);
+                            modalContent.appendChild(buttonContainer);
+                            
+                            modal.appendChild(modalContent);
+                            document.body.appendChild(modal);
+                        });
+                        
+                        // Pridáme tlačidlá do kontajnera
+                        buttonsContainer.appendChild(downloadLink);
+                        buttonsContainer.appendChild(telegramButton);
+                        
+                        audioPlayer.appendChild(audioTitle);
+                        audioPlayer.appendChild(audioInfo);
+                        audioPlayer.appendChild(audioElement);
+                        audioPlayer.appendChild(buttonsContainer);
+                        
+                        if (resultContainer) {
+                            resultContainer.prepend(audioPlayer);
+                        }
+                    })
+                    .catch(error => {
+                        if (flashContainer) {
+                            flashContainer.remove();
+                        }
+                        console.error('Error:', error);
+                        alert('Chyba pri generovaní podcastu: ' + error);
+                    })
+                    .finally(() => {
+                        // Obnovenie tlačidla
+                        textToSpeechBtn.disabled = false;
+                    });
+                });
+                
+                // Pridanie prvkov do stromu DOM
+                voiceContainer.appendChild(voiceLabel);
+                voiceContainer.appendChild(voiceSelect);
+                
+                styleContainer.appendChild(styleLabel);
+                styleContainer.appendChild(styleSelect);
+                
+                buttonContainer.appendChild(cancelButton);
+                buttonContainer.appendChild(createButton);
+                
+                modalContent.appendChild(modalTitle);
+                modalContent.appendChild(modalInfo);
+                modalContent.appendChild(voiceContainer);
+                modalContent.appendChild(styleContainer);
+                modalContent.appendChild(buttonContainer);
+                
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+            });
+        }
+    </script>
+
+</body>
+</html> 

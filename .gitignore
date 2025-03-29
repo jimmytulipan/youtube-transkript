@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Vercel
+.vercel
+.env
+.env.local
+
+# Dočasné súbory
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Špeciálne súbory
+*.mp3
+*.wav
+config.ini
+
+# Inštalačné súbory
+installer_temp/
+*.exe
+
+# Ignorovať Python cache súbory
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignorovať prostredie
+venv/
+env/
+.env
+
+# Ignorovať logy
+*.log
+
+# Ignorovať súbor config.py obsahujúci API kľúče
+# Odkomentujte nasledujúci riadok, ak chcete vylúčiť config.py z gitu
+# config.py
+
+# Flask templates (ak ich nechceš verzovať)
+# templates/ 
