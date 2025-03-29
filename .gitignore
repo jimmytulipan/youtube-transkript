@@ -49,7 +49,7 @@ __pycache__/
 # Ignorovať prostredie
 venv/
 env/
-.env
+# .env
 
 # Ignorovať logy
 *.log

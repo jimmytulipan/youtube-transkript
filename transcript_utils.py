@@ -13,6 +13,7 @@ import aiohttp
 import asyncio
 import logging
 import requests
+import os
 from typing import Dict, Any, List, Optional, Union
 
 # Nastavenie logovania
@@ -22,12 +23,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Pokúsime sa importovať YOUTUBE_TRANSCRIPT_API_TOKEN z config.py
-try:
-    from config import YOUTUBE_TRANSCRIPT_API_TOKEN  # Importujeme token
-except ImportError:
-    logger.warning("Nepodarilo sa importovať YOUTUBE_TRANSCRIPT_API_TOKEN z config.py")
-    YOUTUBE_TRANSCRIPT_API_TOKEN = None  # Fallback
+# Najprv skúsime získať token z prostredia (Vercel), potom z .env, a nakoniec z config.py
+YOUTUBE_TRANSCRIPT_API_TOKEN = os.environ.get('YOUTUBE_TRANSCRIPT_API_TOKEN')
+
+# Ak nie je v prostredí, skúsime z config.py
+if not YOUTUBE_TRANSCRIPT_API_TOKEN:
+    try:
+        from config import YOUTUBE_TRANSCRIPT_API_TOKEN  # Importujeme token
+    except ImportError:
+        logger.warning("Nepodarilo sa importovať YOUTUBE_TRANSCRIPT_API_TOKEN z config.py")
+        YOUTUBE_TRANSCRIPT_API_TOKEN = None  # Fallback
+
+# Kontrola, či máme token
+if not YOUTUBE_TRANSCRIPT_API_TOKEN:
+    logger.warning("YOUTUBE_TRANSCRIPT_API_TOKEN nie je nastavený. Získavanie transkriptov nebude fungovať.")
 
 
 def extract_video_id(url: str) -> Optional[str]:
