@@ -2,7 +2,11 @@
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#343541">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     <title>YouTube Transcript Extractor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -593,10 +597,490 @@
             box-shadow: none;
         }
 
+        /* Nové CSS pre mobilné zariadenia */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #ececf1;
+            font-size: 1.5em;
+            cursor: pointer;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: rgba(64, 65, 79, 0.8);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Media queries pre responzívny dizajn */
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+                flex-direction: column;
+                overflow-y: auto;
+                overflow-x: hidden;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .menu-toggle {
+                display: block;
+                z-index: 1001;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                transform: translateX(-100%);
+                width: 85%;
+                max-width: 300px;
+                height: 100vh;
+                z-index: 1000;
+                transition: transform 0.3s ease-out;
+                overflow-y: auto;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            }
+
+            .main-content {
+                padding-top: 60px;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .center-area {
+                padding: 10px;
+                height: auto;
+            }
+
+            .input-wrapper {
+                padding: 0 10px 10px;
+                position: relative;
+                bottom: auto;
+            }
+
+            .input-area {
+                padding: 8px 8px 8px 12px;
+            }
+
+            .input-area input[type="url"] {
+                font-size: 1em;
+                padding: 6px 4px;
+            }
+
+            .input-area button[type="submit"] {
+                width: 38px;
+                height: 38px;
+                font-size: 1em;
+            }
+
+            .transcript-area textarea {
+                min-height: 400px;
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            .welcome-message {
+                margin-top: 20px;
+                padding: 20px;
+                max-width: 90%;
+            }
+
+            .welcome-message i {
+                font-size: 2.5em;
+                margin-bottom: 15px;
+            }
+
+            .welcome-message p {
+                font-size: 1.1em;
+            }
+
+            .transcript-area h2 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
+
+            .flash {
+                padding: 12px 15px;
+                font-size: 0.85em;
+                width: 95%;
+            }
+
+            /* Tlačidlá pre akcie - responzívne */
+            .action-button {
+                padding: 8px 10px;
+                font-size: 0.85em;
+            }
+
+            /* Kontajner pre tlačidlá - mobilný dizajn */
+            div[style*="display: flex; justify-content: center; margin-bottom: 15px;"] {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            div[style*="display: flex; justify-content: center; margin-bottom: 15px;"] button {
+                flex: 1 1 auto;
+                min-width: 120px;
+                margin-left: 0 !important;
+                margin-bottom: 8px;
+            }
+
+            /* Modálne okná pre mobilné zariadenia */
+            .modal-content {
+                width: 95% !important;
+                max-width: 350px !important;
+                padding: 15px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 15px;
+            }
+
+            .sidebar {
+                width: 85%;
+            }
+
+            .center-area {
+                padding: 5px;
+            }
+
+            .input-area button[type="submit"] {
+                width: 36px;
+                height: 36px;
+            }
+
+            .transcript-area textarea {
+                padding: 10px;
+                min-height: 350px;
+                font-size: 0.95em;
+            }
+
+            .action-button {
+                padding: 8px 10px;
+                font-size: 0.8em;
+            }
+
+            .welcome-message {
+                padding: 15px;
+            }
+
+            .welcome-message i {
+                font-size: 2em;
+            }
+
+            .welcome-message p {
+                font-size: 1em;
+            }
+
+            /* Upravenie veľkosti tlačidiel na najmenších obrazovkách */
+            div[style*="display: flex; justify-content: center; margin-bottom: 15px;"] {
+                flex-direction: column;
+            }
+
+            div[style*="display: flex; justify-content: center; margin-bottom: 15px;"] button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            /* Zlepšenie čitateľnosti menu */
+            .sidebar-nav li a, .sidebar-footer a {
+                padding: 12px;
+            }
+        }
+
+        /* Štýly pre orientáciu na šírku (landscape) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .transcript-area textarea {
+                min-height: 200px;
+            }
+
+            .welcome-message {
+                margin-top: 10px;
+                padding: 10px;
+            }
+
+            .welcome-message i {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+
+            .center-area {
+                padding-top: 10px;
+            }
+        }
+
+        /* Štýly pre pozadie bočného menu na mobilných zariadeniach */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        /* Štýly pre dotykové zariadenia */
+        .touch-device button,
+        .touch-device a {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Vylepšenia pre mobilný UX */
+        @media (max-width: 768px) {
+            .sidebar-backdrop.active {
+                display: block;
+                opacity: 1;
+            }
+            
+            /* Zlepšenie štýlov pre prevzatie kontroly nad rozhraním */
+            .input-area {
+                margin: 0 auto;
+            }
+            
+            .input-area input[type="url"] {
+                padding: 10px 5px;
+                height: 44px;
+            }
+            
+            .input-area button[type="submit"] {
+                width: 44px;
+                height: 44px;
+            }
+            
+            /* Lepšie odozvy pre dotykové ovládanie */
+            .action-button:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+            }
+            
+            /* Vylepšené štýly pre flash správy */
+            .flash {
+                max-width: 95%;
+                margin-left: auto;
+                margin-right: auto;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+            
+            /* Zlepšenie scrollovania */
+            .center-area {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Zlepšené skryté menu */
+            .sidebar {
+                box-shadow: none;
+            }
+            
+            .sidebar.active {
+                box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .action-buttons-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .action-buttons-container .action-button {
+            flex: 1 1 auto;
+            min-width: 120px;
+            white-space: nowrap;
+            text-align: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons-container {
+                gap: 8px;
+            }
+            
+            .action-buttons-container .action-button {
+                padding: 8px;
+                font-size: 0.85em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .action-buttons-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .action-buttons-container .action-button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+        
+        /* Nový štýl pre vyrolovateľné menu histórie */
+        .history-dropdown {
+            position: fixed;
+            right: 15px;
+            top: 15px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .history-toggle-btn {
+            background-color: rgba(64, 65, 79, 0.8);
+            color: #ececf1;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1002;
+        }
+
+        .history-toggle-btn:hover {
+            background-color: rgba(80, 82, 100, 0.9);
+            transform: scale(1.05);
+        }
+
+        .history-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        .history-content {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 280px;
+            background-color: rgba(32, 33, 35, 0.95);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            transform-origin: top right;
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 70vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .history-content.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .history-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #8e8ea0;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
+            color: #ececf1;
+            text-decoration: none;
+        }
+
+        .history-item:hover {
+            background-color: rgba(52, 53, 65, 0.7);
+        }
+
+        .history-item i {
+            margin-right: 10px;
+            opacity: 0.8;
+        }
+
+        .history-item span {
+            font-size: 0.95em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-history-message {
+            color: #8e8ea0;
+            font-style: italic;
+            font-size: 0.9em;
+            padding: 8px 0;
+        }
+
+        /* Media queries pre responzívny dizajn */
+        @media (max-width: 768px) {
+            .history-dropdown {
+                display: block;
+            }
+            
+            /* Skrytie sekcie histórie v bočnom menu na mobilných zariadeniach */
+            .sidebar .secondary-nav .section-title,
+            .sidebar .secondary-nav ul,
+            .sidebar .secondary-nav .empty-history {
+                display: none;
+            }
+            
+            /* Posunie sa hlavný obsah, aby bolo miesto pre tlačidlo histórie */
+            .main-content {
+                padding-top: 70px;
+            }
+        }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Pridanie vyrolovateľného menu histórie -->
+    <div class="history-dropdown">
+        <button class="history-toggle-btn" id="historyToggle">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </button>
+        <div class="history-content" id="historyContent">
+            <div class="history-title">História požiadaviek</div>
+            {% if history and history|length > 0 %}
+                {% for item in history %}
+                <a href="{{ url_for('replay_from_history', video_id=item.video_id) }}" class="history-item" title="{{ item.url }}">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>{{ item.title }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-history-message">Zatiaľ žiadna história...</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="/" class="logo animate__animated animate__fadeIn">
                 <i class="fa-solid fa-robot"></i>
@@ -660,14 +1144,14 @@
         </div>
 
         <div class="input-wrapper">
-            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+            <div class="action-buttons-container">
                 <button id="summarizeBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s">
                     <i class="fa-solid fa-book"></i> Sumarizovať
                 </button>
-                <button id="detailedSummarizeBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s" style="margin-left: 10px;">
+                <button id="detailedSummarizeBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s">
                     <i class="fa-solid fa-book-open"></i> Podrobná sumarizácia
                 </button>
-                <button id="textToSpeechBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s" style="margin-left: 10px;">
+                <button id="textToSpeechBtn" class="action-button animate__animated animate__fadeInUp animate__delay-1s">
                     <i class="fa-solid fa-volume-high"></i> Podcast z aktuálneho textu
                 </button>
             </div>
@@ -1493,6 +1977,175 @@
                 document.body.appendChild(modal);
             });
         }
+
+        // Pridanie JavaScriptu pre ovládanie responzívnosti
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            if (menuToggle && sidebar && backdrop) {
+                menuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    backdrop.classList.toggle('active');
+                    
+                    // Pridanie triedu pre zabránenie scrollovania pozadia, keď je menu otvorené
+                    if (sidebar.classList.contains('active')) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                // Zavrieť sidebar pri kliknutí na backdrop
+                backdrop.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    backdrop.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+                
+                // Zavrieť sidebar pri kliknutí mimo sidebar
+                document.addEventListener('click', function(event) {
+                    if (sidebar.classList.contains('active') && 
+                        !sidebar.contains(event.target) && 
+                        event.target !== menuToggle) {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                // Zavrieť sidebar pri kliknutí na odkaz v menu (na mobilných zariadeniach)
+                const sidebarLinks = sidebar.querySelectorAll('a');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('active');
+                            backdrop.classList.remove('active');
+                            document.body.style.overflow = '';
+                        }
+                    });
+                });
+            }
+            
+            // Upravenie výšky textarea na základe výšky okna na mobilných zariadeniach
+            function adjustTextareaHeight() {
+                const textarea = document.querySelector('.transcript-area textarea');
+                if (textarea) {
+                    if (window.innerWidth <= 768) {
+                        const windowHeight = window.innerHeight;
+                        textarea.style.minHeight = (windowHeight * 0.4) + 'px';
+                    } else {
+                        textarea.style.minHeight = '700px';
+                    }
+                }
+                
+                // Upravíme výšku pre animovaný obsah transkriptu
+                const transcriptContent = document.querySelector('.transcript-content');
+                if (transcriptContent) {
+                    if (window.innerWidth <= 768) {
+                        const windowHeight = window.innerHeight;
+                        transcriptContent.style.minHeight = (windowHeight * 0.4) + 'px';
+                    } else {
+                        transcriptContent.style.minHeight = '700px';
+                    }
+                }
+            }
+            
+            // Upravíme štýl pre modálne okná na mobilných zariadeniach
+            function adjustModalStyles() {
+                const modalContents = document.querySelectorAll('.modal-content');
+                if (modalContents.length > 0) {
+                    modalContents.forEach(content => {
+                        if (window.innerWidth <= 768) {
+                            content.style.width = '95%';
+                            content.style.maxWidth = '350px';
+                            content.style.padding = '15px';
+                        } else {
+                            content.style.width = '90%';
+                            content.style.maxWidth = '400px';
+                            content.style.padding = '20px';
+                        }
+                    });
+                }
+            }
+            
+            // Upravíme tlačidlá pre akcie
+            function adjustActionButtons() {
+                const actionButtonsContainer = document.querySelector('.action-buttons-container');
+                if (actionButtonsContainer) {
+                    if (window.innerWidth <= 480) {
+                        actionButtonsContainer.style.flexDirection = 'column';
+                    } else {
+                        actionButtonsContainer.style.flexDirection = 'row';
+                    }
+                }
+            }
+            
+            // Zaregistrujeme event listenery
+            window.addEventListener('resize', function() {
+                adjustTextareaHeight();
+                adjustModalStyles();
+                adjustActionButtons();
+            });
+            
+            adjustTextareaHeight();
+            adjustActionButtons();
+            
+            // Optimalizácia pre dotykové zariadenia
+            if ('ontouchstart' in window) {
+                // Zabezpečenie, že tlačidlá majú dostatočný priestor pre dotyk
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.style.minHeight = '44px';
+                });
+                
+                // Zabezpečenie, že odkazy v bočnom menu majú dostatočnú výšku pre dotyk
+                const navLinks = document.querySelectorAll('.sidebar-nav a, .sidebar-footer a');
+                navLinks.forEach(link => {
+                    link.style.minHeight = '44px';
+                    link.style.display = 'flex';
+                    link.style.alignItems = 'center';
+                });
+            }
+            
+            // Pridanie odvolávania sa na Fast Click pre odstránenie 300ms oneskorenia dotyku
+            if ('ontouchstart' in window) {
+                document.body.classList.add('touch-device');
+                
+                // Minimálne riešenie pre oneskorenie dotyku
+                document.addEventListener('touchstart', function() {}, {passive: true});
+            }
+
+            // Vyrolovateľné menu histórie
+            const historyToggle = document.getElementById('historyToggle');
+            const historyContent = document.getElementById('historyContent');
+            
+            if (historyToggle && historyContent) {
+                historyToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    historyContent.classList.toggle('active');
+                });
+                
+                // Zavrieť menu histórie pri kliknutí mimo neho
+                document.addEventListener('click', function(event) {
+                    if (historyContent.classList.contains('active') && 
+                        !historyContent.contains(event.target) && 
+                        event.target !== historyToggle) {
+                        historyContent.classList.remove('active');
+                    }
+                });
+                
+                // Zavrieť menu histórie pri kliknutí na položku histórie
+                const historyItems = historyContent.querySelectorAll('.history-item');
+                historyItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        historyContent.classList.remove('active');
+                    });
+                });
+            }
+        });
     </script>
 
 </body>
